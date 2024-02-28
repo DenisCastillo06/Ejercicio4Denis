@@ -1,0 +1,1 @@
+mysqldump u- rapid_mart -p rapidmart > rapidmart_backup.sql;
