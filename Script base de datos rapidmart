@@ -1,0 +1,98 @@
+DROP DATABASE IF EXISTS rapidmart;
+CREATE DATABSE rapidmart;
+USE radipmart
+
+CREATE TABLE categorias (
+id_categoria INT PRIMARY KEY,
+nombre_categoria VARCHAR(50) NOT NULL
+);
+
+CREATE TABLE proveedores (
+id_proveedor INT PRIMARY KEY,
+nombre_proveedor VARCHAR(50) NOT NULL,
+direccion_proveedor VARCHAR(255) NOT NULL,
+telefono_proveedor VARCHAR(10) NOT NULL
+);
+
+
+CREATE TABLE productos (
+id_producto INT PRIMARY KEY,
+nombre_producto VARCHAR(50) NOT NULL,
+descripcion_producto VARCHAR(255) NOT NULL,
+precio_unitario DECIMAL(10,2) NOT NULL,
+id_categoria INT,
+id_proveedor INT,
+FOREIGN KEY (id_categoria) REFERENCES categorias(id_categoria),
+FOREIGN KEY (id_proveedor) REFERENCES proveedores(id_proveedor)
+); 
+
+CREATE TABLE inventarios (
+id_inventario INT PRIMARY KEY,
+id_producto INT,
+cantidad_disponible INT NOT NULL,
+fecha_ingreso DATE,
+FOREIGN KEY (id_producto) REFERENCES productos(id_producto)
+);
+
+CREATE TABLE movimientos_inventarios(
+id_movimiento_inventario INT PRIMARY KEY,
+id_inventario INT,
+tipo_movimiento ENUM('entrada', 'salida') NOT NULL,
+cantidad INT NOT NULL,
+fecha_movimiento DATE,
+FOREIGN KEY (id_inventario) REFERENCES inventarios(id_inventario)
+);
+
+CREATE TRIGGER actualizar_cantidad_disponible AFTER INSERT ON movimientos_inventarios
+FOR EACH ROW
+BEGIN
+    IF NEW.tipo_movimiento = 'entrada' then
+       UPDATE productos
+       SET cantidad_disponible = cantidad_disponible + NEW.cantidad_movimiento
+       WHERE id_producto = (SELECT id_producto FROM inventarios WHERE id_inventario = NEW.id_inventario);
+    ELSE
+    UPDATE productos
+       SET cantidad_disponible = cantidad_disponible - NEW.cantidad_movimiento
+       WHERE id_producto = (SELECT id_producto FROM inventarios WHERE id_inventario = NEW.id_inventario);
+    END IF;
+END;
+
+INSERT INTO categorias (id_categoria, nombre_categoria) VALUES
+(UUID(), 'Comida'),
+(UUID(), 'Bebidas'),
+(UUID(), 'Electronica'),
+(UUID(), 'Uso personal'),
+(UUID(), 'Limpieza'),
+(UUID(), 'Medicinas'),
+(UUID(), 'Legumbres'),
+(UUID(), 'Aderesos'),
+(UUID(), 'Carnes'),
+(UUID(), 'Embutidos')
+
+INSERT INTO proveedores (id_proveedor, nombre_proveedor, direccion_proveedor, telefono_proveedor) VALUES
+(UUID(), 'Carlos', 'Avenida Asefalo', '9632-8262'),
+(UUID(), 'Matias', 'Avenida Falacios', '8575-3721'),
+(UUID(), 'Marcos', 'Avenida Escamilla', '9373-1357'),
+(UUID(), 'Denis', 'Calle Bautista', '0382-5321'),
+(UUID(), 'Arlon', 'Calle Valcomix', '8775-5677'),
+(UUID(), 'Xavier', 'Avenida Torres', '0482-2344'),
+(UUID(), 'Kaylor', 'Avenida Walter', '7443-2355'),
+(UUID(), 'Gabriel', 'Avenida Zarcort', '4222-5421'),
+(UUID(), 'Hilberto', 'Avenida Tesla', '3555-0732'),
+(UUID(), 'Naomi', 'Calle Uriel', '2445-6325'),
+
+INSERT INTO productos (id_producto, nombre_producto, descripcion_producto, precio_unitario, id_categoria, id_proveedor) VALUES
+(UUID(), 'Tablet', 'Tablet de ultima generacion', 350.00, 3, 7),
+(UUID(), 'Carne de Cerdo', 'Carne fresca de cerdo', 5.95, 9, 3),
+(UUID(), 'Jugo de Naranja', 'Jugo de extracto de naranja', 2.50, 2, 10)
+
+INSERT INTO inventarios (id_inventario, id_producto, cantidad_disponible, fecha_ingreso) VALUES
+(UUID(), 1, 19, '2024-01-29'),
+(UUID(), 3, 23, '2024-02-27'),
+(UUID(), 2, 35, '2024-02-15')
+
+INSERT INTO movimientos_inventarios (id_movimiento_inventario, id_inventario, tipo_movimiento, cantidad, fecha_movimiento) VALUES
+(UUID(), 1, 19, 'entrada', 19, '2024-01-31'),
+(UUID(), 2, 23, 'entrada', 23, '2024-02-28'),
+(UUID(), 3, 35, 'salida', 35, '2024-02-17')
+
